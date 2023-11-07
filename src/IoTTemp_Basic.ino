@@ -275,12 +275,12 @@ unsigned long minHumidityEpoch;
   String startFormattedTime;               // For display purposes
 #endif
 
-int waitForWiFi = 20000 ;         // How long to wait for the WiFi to connect - 10 Seconds should be enough 
-int startWiFi;
-int connectMillis = millis();     // this gets reset after every successful data push
+unsigned long waitForWiFi = 20000 ;         // How long to wait for the WiFi to connect - 10 Seconds should be enough 
+unsigned long startWiFi;
+unsigned long connectMillis = millis();     // this gets reset after every successful data push
 
-int poll = 60000;           // Poll the sensor every 60 seconds (or so)
-int lastRun = millis() - (poll + 1);
+unsigned long poll = 60000;           // Poll the sensor every 60 seconds (or so)
+unsigned long lastRun = millis() - (poll + 1);
 
 #ifdef IOTAWATT
  String IWApi;
@@ -694,7 +694,7 @@ if ( startEpochTime < 500000 ) {
        showIP = false;
     }
     #endif
-    Serial.printf("\n[Connecting to %s ... ", host, "\n");
+    Serial.printf("[Connecting to %s ... \n", host );
       
     if (client.connect(host, 80))     {
       Serial.println("Connected]");
@@ -957,11 +957,12 @@ String fullDate ( unsigned long epoch ){
 static unsigned char month_days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
 static unsigned char week_days[7] = {4,5,6,0,1,2,3}; //Thu=4, Fri=5, Sat=6, Sun=0, Mon=1, Tue=2, Wed=3
 
-unsigned char ntp_hour, ntp_minute, ntp_second, ntp_week_day, ntp_date, ntp_month, leap_days, leap_year_ind ;
+unsigned char ntp_hour, ntp_minute, ntp_second, ntp_week_day, ntp_date, ntp_month, leap_days;
+unsigned long leap_year_ind ;
 String dow, sMonth;
 unsigned short temp_days;
 
-unsigned int ntp_year, days_since_epoch, day_of_year; 
+unsigned long ntp_year, days_since_epoch, day_of_year; 
 
     leap_days=0; 
     leap_year_ind=0;
@@ -978,7 +979,7 @@ unsigned int ntp_year, days_since_epoch, day_of_year;
      
     ntp_year = 1970+(days_since_epoch/365); // ball parking year, may not be accurate!
  
-    int i;
+    unsigned long i;
     for (i=1972; i<ntp_year; i+=4)      // Calculating number of leap days since epoch/1970
        if(((i%4==0) && (i%100!=0)) || (i%400==0)) leap_days++;
             
@@ -1068,7 +1069,7 @@ unsigned int ntp_year, days_since_epoch, day_of_year;
 // Wait around for a bit
 void millisDelay ( int mDelay )
 {
-  int now = millis();
+  unsigned long now = millis();
   do {
     // Do nothing
   } while ( millis() < now + mDelay);
