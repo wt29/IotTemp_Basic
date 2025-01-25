@@ -5,6 +5,5 @@
 .vscode/ipch
 include/external.h
 include/hackdesk.h
-include/data.h
 include/shed.h
 include/kitchen.h
