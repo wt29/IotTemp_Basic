@@ -1,3 +1,4 @@
+#include <Arduino.h>
 /* 
 IOT Temp - the little weather station that could.  Read/Display/Log. 
 
@@ -21,7 +22,7 @@ Also accesible via a webserver either on its http://ipaddress or http://nodename
 -------------------------------------
 //template for data.h
 
-//** Node and Network Setup
+** Node and Network Setup
 #define NODENAME "<Your NodeName>";                 // eg "Kitchen"  Required and UNIQUE per site.  Also used to find mdns eg NODENAME.local
 
 #define WIFI                                        // Default is true to enable WiFi
@@ -186,17 +187,18 @@ boolean showIP = true;    // Only show the WiFi/IP details on first run through 
 
 //connector shield version (Load Library and Instantiate)
 #ifndef CONNECTOR_100    // the v1.1.0 connector board has different CS and DC values
-  #define TFT_CS     D4
-  #define TFT_DC     D3
-#else                    // Otherwise use the 1.0.0 values
   #define TFT_CS     D0
   #define TFT_DC     D8
+#else                    // Otherwise use the 1.0.0 values
+  #define TFT_CS     D4
+  #define TFT_DC     D3
 #endif
 
-//headless vs TFT?
+// headless vs TFT?
 #ifndef HEADLESS
   #define TFT_RST    -1       // you can also connect this to the Arduino reset. in which case, set this #define pin to -1!
-  Adafruit_ST7735 tft = Adafruit_ST7735( TFT_CS, TFT_DC, TFT_RST);    // Instance of tft
+//  Adafruit_ST7735 tft = Adafruit_ST7735( TFT_CS, TFT_DC, TFT_RST);    // Instance of tft
+  Adafruit_ST7735 tft = Adafruit_ST7735( D4, D3, TFT_RST);    // Instance of tft
 #endif
 
 //air quality shield 
@@ -220,12 +222,12 @@ boolean showIP = true;    // Only show the WiFi/IP details on first run through 
 #endif
 
 //temperature and humidity shield
-#ifndef HASDHT12
+#ifndef DHT
   #include <WEMOS_SHT3X.h>      // SHT30 Current best bang for back in typical human/environment temp and humidity ranges
   SHT3X sht30(0x45);
 #else
   #include <WEMOS_DHT12.h>      // depreciated DHT12 temperature and humidity sensor. 
-  DHT12 dht12;                  
+  DHT12 dht;
 #endif
 
 //Do we want to log BushFire Danger Stuff? 
@@ -311,96 +313,98 @@ void setup()
   if ( isnan( minHumidity ) ) { minHumidity = 100; }
   EEPROM.get(28,minHumidityEpoch);       
 
-#ifdef AIRQUALITY
+  #ifdef AIRQUALITY
   sgp30.begin(); // startup/calibrate the air quality shield
   sgp30.IAQinit();
-#endif
+ #endif
 
-#ifdef BMP
+ #ifdef BMP
   HP303B.begin(); // I2C address = 0x77
-#endif
+ #endif
 
-#ifndef HEADLESS
+ #ifndef HEADLESS
   tft.initR(INITR_144GREENTAB);
   tft.setTextWrap(false);     // Allow text to run off right edge
   tft.setRotation( 1 );       // Portrait mode
-#endif
+ #endif
 
-#ifdef WIFI
+ #ifdef WIFI
 
-timeClient.begin();
-timeClient.forceUpdate();
+ timeClient.begin();
+ timeClient.forceUpdate();
 
-if (MDNS.begin( nodeName )) {              // Start the mDNS responder for <nodeName>.local
+ if (MDNS.begin( nodeName )) {              // Start the mDNS responder for <nodeName>.local
     Serial.println("mDNS responder started");
   } else {
     Serial.println("Error setting up MDNS responder!");
   }
 
-server.on("/", handleRoot);               // Call the 'handleRoot' function when a client requests URI "/"
-server.on("/reboot",rebootDevice);        // Kick over remotely
-server.on("/reseteeprom",resetEEPROM);    // Reset the EEPROM values
-server.on("/readeeprom",readEEPROM);      // Read and display the EEPROM values
-server.on("/writeeeprom",writeEEPROM);      // Read and display the EEPROM values
-server.onNotFound(handleNotFound);        // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound"
+ server.on("/", handleRoot);               // Call the 'handleRoot' function when a client requests URI "/"
+ server.on("/reboot",rebootDevice);        // Kick over remotely
+ server.on("/reseteeprom",resetEEPROM);    // Reset the EEPROM values
+ server.on("/readeeprom",readEEPROM);      // Read and display the EEPROM values
+ server.on("/writeeeprom",writeEEPROM);      // Read and display the EEPROM values
+ server.onNotFound(handleNotFound);        // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound"
 
-server.begin();                           // Actually start the server
-Serial.println("HTTP server started");
+ server.begin();                           // Actually start the server
+ Serial.println("HTTP server started");
 
-ArduinoOTA.begin();                       // Remote updates
-ArduinoOTA.setHostname( nodeName );
+ ArduinoOTA.begin();                       // Remote updates
+ ArduinoOTA.setHostname( nodeName );
 
-#endif
+ #endif
+
+ Serial.println( nodeName );
 }       // Setup
 
 
 //------------------------
 void loop() {
 
-#ifdef WIFI 
- server.handleClient();                    // Listen for HTTP requests from clients
- ArduinoOTA.handle();
-#endif
+ #ifdef WIFI 
+  server.handleClient();                    // Listen for HTTP requests from clients
+  ArduinoOTA.handle();
+ #endif
 
-if ( millis() > lastRun + poll ) {        // only want this happening every so often - see Poll value
+ if ( millis() > lastRun + poll ) {        // only want this happening every so often - see Poll value
 
-// Attempt to set the start time correctly on "non pro" D1
-// It seems to keep returning ~10000 (10K )which is the timezone offset until inited correctly 
-// The Wemos D1 seem slow to update this it may take a couple of loops to sync correctly. The D1 Pro seems fine.
+ // Attempt to set the start time correctly on "non pro" D1
+ // It seems to keep returning ~10000 (10K )which is the timezone offset until inited correctly 
+ // The Wemos D1 seem slow to update this it may take a couple of loops to sync correctly. The D1 Pro seems fine.
 
-if ( startEpochTime < 500000 ) {             
+ if ( startEpochTime < 500000 ) {             
   timeClient.update();                     
   unsigned long epochTime = timeClient.getEpochTime();
   Serial.println( epochTime );
   startEpochTime = epochTime;
   startFormattedTime = timeClient.getFormattedTime();
-}
-
-#ifndef HASDHT12
-  Serial.println("Reading SHT30 Temperature/Humidity Shield");
- if( !(sht30.get() == 0 ) ){
-#else  
-  Serial.println("Reading DHT12 Temperature/Humidity Shield");
- if( !(dht12.get() == 0 ) ){
-#endif
-  Serial.println("Cannot read Temperature/Humidity Shield");
-  #ifndef HEADLESS
-    tft.println("Temp/Humidity Shield Error");
-  #endif
-  
  }
- else
- {
+
+ #ifndef DHT
+  Serial.println("Reading SHT30 Temperature/Humidity Shield");
+  if( !(sht30.get() == 0 ) ){
+   Serial.println("Cannot read SHT Shield");
+   #ifndef HEADLESS
+    tft.println("Temp/Humidity Shield Error");
+   #endif
+  }
+ #else  
+  Serial.println("Reading DHT12 Temperature/Humidity Shield");
+ if( !(dht.get() == 0 ) ){
+   Serial.println("Cannot read DHT Shield");
+ }
+ #endif
   
-#ifndef HASDHT12
+   
+ #ifndef DHT
   TempC = sht30.cTemp;
   TempF = sht30.fTemp;
   Humidity = sht30.humidity;
-#else
-  TempC = dht12.cTemp;
-  TempF = dht12.fTemp;
-  Humidity = dht12.humidity;
-#endif  
+ #else
+  TempC = dht.cTemp;
+  TempF = dht.fTemp;
+  Humidity = dht.humidity;
+ #endif  
  if ( startEpochTime > 1630929506 ) {   // no point recording this until time is useful
   if (TempC > maxTemp ) {
     maxTemp = TempC;
@@ -443,7 +447,7 @@ if ( startEpochTime < 500000 ) {
   Serial.print("Relative Humidity : ");
   Serial.println(Humidity);
 
-#ifdef AIRQUALITY
+ #ifdef AIRQUALITY
   Serial.println("Reading sgp30 Air Quality Shield");
 
   //set the absolute humidity to enable humidity compensation for the air quality signals
@@ -465,21 +469,21 @@ if ( startEpochTime < 500000 ) {
     tft.println("AQ  Sensor Error");
   #endif
   }
-#endif
+ #endif
 
-#ifdef BMP
+ #ifdef BMP
   Serial.println("Reading HP303B Barometric Pressure Shield");
   bmpRet = HP303B.measurePressureOnce(pressure, 7);  
   pressure = pressure/100;                    // only interested in millbars not pascals
   pressureMSL = ( pressure + BMPCorrection ); // adjust for altitude defined in data.h
   Serial.print("Pressure mBar : ");
   Serial.println(pressureMSL);
-#endif
+ #endif
 
   Serial.print("Free Heap : ");
   Serial.println(ESP.getFreeHeap());
 
-#ifndef HEADLESS
+ #ifndef HEADLESS
   tft.fillScreen(ST7735_BLACK);
   tft.setCursor(0, 0);
   tft.setTextSize(2);
@@ -513,8 +517,6 @@ if ( startEpochTime < 500000 ) {
     tft.setTextColor(ST7735_RED);      // Hot
   }
   
-//  tft.setTextColor(ST7735_GREEN);
-
   #ifdef CELSIUS
     tft.println(TempC);
   #else
@@ -540,7 +542,7 @@ if ( startEpochTime < 500000 ) {
   }
   tft.println(Humidity);
   
-#ifdef IOTAWATT
+ #ifdef IOTAWATT
   tft.setTextColor(ST7735_WHITE);
   if ((numberOfSensors < 4) && !showIP ) {
    tft.print("W ");
@@ -570,7 +572,7 @@ if ( startEpochTime < 500000 ) {
   tft.println( IW_solar );
  #endif 
 
-#endif
+ #endif
   #ifdef BMP
     tft.setTextColor(ST7735_WHITE);
     if ((SENSORCOUNT < 4) && !showIP ) {
@@ -610,9 +612,9 @@ if ( startEpochTime < 500000 ) {
   tft.setTextColor(ST7735_GREEN);
   tft.println(nodeName);
   }
-#endif
+ #endif
 
-#ifdef WIFI
+ #ifdef WIFI
   if (WiFi.status() != WL_CONNECTED){
 
   for (int i = 0; i <= APCOUNT; i++) {
@@ -654,7 +656,7 @@ if ( startEpochTime < 500000 ) {
       // Free resources
       http.end();
       }
-#ifdef IW_SOLAR
+ #ifdef IW_SOLAR
       serverPath = IW_SOLAR; 
       http.begin(client,serverPath);
       
@@ -676,7 +678,7 @@ if ( startEpochTime < 500000 ) {
       // Free resources
       http.end();
 
-#endif
+ #endif
  
     #endif
 
@@ -753,12 +755,12 @@ if ( startEpochTime < 500000 ) {
     tft.println( host );
     tft.print(" Connection failed");
    }
-#endif  // def WIFI
+ #endif  // def WIFI
   }  
      lastRun = millis();
   
  }    // Wifi Status 
- }    // Sensor Read
+     // Sensor Read
 
 }     // Loop
 
@@ -942,8 +944,6 @@ void writeEEPROM(){    // Flush the values
 
 }
 
-
-
 String getInternetTime() {
   timeClient.update();
   delay(200);
@@ -958,14 +958,14 @@ static unsigned char month_days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
 static unsigned char week_days[7] = {4,5,6,0,1,2,3}; //Thu=4, Fri=5, Sat=6, Sun=0, Mon=1, Tue=2, Wed=3
 
 unsigned char ntp_hour, ntp_minute, ntp_second, ntp_week_day, ntp_date, ntp_month, leap_days;
-unsigned long leap_year_ind ;
+bool leap_year = false ;
 String dow, sMonth;
 unsigned short temp_days;
 
 unsigned long ntp_year, days_since_epoch, day_of_year; 
 
     leap_days=0; 
-    leap_year_ind=0;
+//    leap_year=false;
     
     ntp_second = epoch%60;
     epoch /= 60;
@@ -990,7 +990,7 @@ unsigned long ntp_year, days_since_epoch, day_of_year;
     if(((ntp_year%4==0) && (ntp_year%100!=0)) || (ntp_year%400==0))  
      {
         month_days[1]=29;     //February = 29 days for leap years
-        leap_year_ind = 1;    //if current year is leap, set indicator to 1 
+        leap_year = true;    //if current year is leap, set indicator to 1 
        }
         else month_days[1]=28; //February = 28 days for non-leap years 
 
@@ -1059,8 +1059,8 @@ unsigned long ntp_year, days_since_epoch, day_of_year;
   printf("Days since Epoch: %d\n",days_since_epoch);
   printf("Number of Leap days since EPOCH: %d\n",leap_days);
   printf("Day of year = %d\n", day_of_year);
-  printf("Is Year Leap? %d\n",leap_year_ind);
-*/
+ */ printf("Is Year Leap? %d\n",leap_year);
+
   String sNTPM = String( "00" + ntp_minute );
   sNTPM = sNTPM.substring( sNTPM.length() -2, sNTPM.length() );
   return String( dow + " " + ntp_date + " " + sMonth + " " + ntp_year + " " + ntp_hour + ":" + ntp_minute + ":" + ntp_second  );
