@@ -1,5 +1,5 @@
 
-#IotaTemp_basic
+# IotaTemp_basic
 
 Wemos D1 mini and SHT30 Sensor logs to the internet. The older DHT12 is also supported if you have one handy.
 
@@ -13,7 +13,7 @@ Once you have an account, substitute the values in the #data.h recompile and upl
 
 Your values should appear in emoncms/inputs almost immediately.
 
-BOM
+## BOM
 WeMOS D1 Mini
 
 TFT 1.4 Shield <- no longer available. The OLED shields will work but probably need some minor code changes
