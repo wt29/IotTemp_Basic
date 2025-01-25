@@ -3,7 +3,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-src/external.h
-src/hackdesk.h
-src/data.h
+include/external.h
+include/hackdesk.h
+include/data.h
+include/shed.h
 include/kitchen.h
