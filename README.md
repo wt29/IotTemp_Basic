@@ -14,7 +14,8 @@ Once you have an account, substitute the values in the #data.h recompile and upl
 Your values should appear in emoncms/inputs almost immediately.
 
 ## BOM
-WeMOS D1 Mini
+
+<b>WeMOS D1 Mini</b>  - the newer variants such as the C3 should also work.
 
 TFT 1.4 Shield <- no longer available. The OLED shields will work but probably need some minor code changes
 
