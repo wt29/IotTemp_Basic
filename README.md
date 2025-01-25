@@ -5,9 +5,9 @@ Wemos D1 mini and SHT30 Sensor logs to the internet. The older DHT12 is also sup
 
 Uses a Wemos/Lolin D1 mini hooked up to the Wemos DHT v3.0.0 shield that logs temp and humidity up to an EmonCMS server.
 
-You can create your own EmonCMS server, the code is open source or create an account at emoncms.org. If you decide to use AWS, pro tip: Reserved Instances are your friend.
+You can create your own EmonCMS server, the code is open source or create an account at emoncms.org. If you decide to use AWS, <b>pro tip:</b> Reserved Instances are your friend.
 
-Create a local data.h and substitute your values as shown in the ino file.
+Create a local data.h and substitute your values as shown in the top of the ino file.
 
 Once you have an account, substitute the values in the #data.h recompile and upload.
 
