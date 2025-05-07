@@ -147,7 +147,7 @@ https://github.com/wemos
 //Node and Network Setup
 #ifdef WIFI
   #include <ESP8266WiFi.h>
-  #include <ESP8266WiFiMulti.h>   // Include the Wi-Fi-Multi library
+  // #include <ESP8266WiFiMulti.h>   // Include the Wi-Fi-Multi library
   #include <WiFiClient.h>
   #include <ESP8266mDNS.h>
   #include <ESP8266WebServer.h>   // Include the WebServer library
@@ -171,8 +171,8 @@ https://github.com/wemos
 #endif
 
 const char* nodeName = NODENAME;
-// const char* ssid = LOCALSSID;
-// const char* password = PASSWORD;
+const char* ssid = LOCALSSID;
+const char* password = WIFIPASSWORD;
 const char* passwords[] = PASSARRAY;
 const char* accessPoints[] = APARRAY;
 const char* host = HOST;
@@ -260,12 +260,12 @@ unsigned long minHumidityEpoch;
 
 #ifdef WIFI
   WiFiClient client;              // Instance of WiFi Client
-  ESP8266WiFiMulti wifiMulti;     // Create an instance of the ESP8266WiFiMulti class, called 'wifiMulti'
+  // ESP8266WiFiMulti wifiMulti;     // Create an instance of the ESP8266WiFiMulti class, called 'wifiMulti'
   ESP8266WebServer server(80);    // Create a webserver object that listens for HTTP request on port 80
   void handleRoot();              // function prototypes for HTTP handlers
   void handleNotFound();
   void readEEPROM();
-  void restEEPROM();
+  void resetEEPROM();
 
   const long utcOffsetInSeconds = TZOFFSET;       // Sydney is 10 hours ahead
   const char* timeServer = TIMESERVER;
@@ -617,12 +617,15 @@ void loop() {
  #ifdef WIFI
   if (WiFi.status() != WL_CONNECTED){
 
-  for (int i = 0; i <= APCOUNT; i++) {
+/*  for (int i = 0; i < APCOUNT; i++) {
     wifiMulti.addAP( accessPoints[i], passwords[i] );     // Add all the APs and passwords from the arrays
-  }
+    Serial.println( String( accessPoints[i]) + " " + String(passwords[i]) );
+  } 
+    */
     connectWiFi();
   }
   if (WiFi.status() != WL_CONNECTED ) {
+    
     #ifndef HEADLESS
        tft.setTextColor(ST7735_RED);
        tft.println("");
@@ -776,7 +779,7 @@ void tftPrint ( char* value, bool newLine, int color ) {
   }
 #endif
 }
-
+/*
 void connectWiFi() {
 
 #ifdef STATIC_IP
@@ -802,7 +805,7 @@ void connectWiFi() {
   }
 
 }
-/*
+*/
 void connectWiFi() {
 
 #ifdef STATIC_IP  
@@ -832,7 +835,7 @@ void connectWiFi() {
   Serial.printf("Connection status: %d\n", WiFi.status());
 
 }
-*/
+
 #ifdef WIFI
 void handleRoot() {
   String url = "<a href=http://" + String(host) + ">"+host+"</a></b><br>";
