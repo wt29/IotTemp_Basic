@@ -31,7 +31,7 @@ Also accesible via a webserver either on its http://ipaddress or http://nodename
 #define PASSARRAY {"Pass1","Pass2","Pass3"}         // Array of passwords
 #define APCOUNT 3                                   // Number of APs to try
 
-#define HOST "<Your emoncms host fqdn>";            // eg  "emoncms.org" Required for logging. Note:just the host not the protocol
+#define EMONCMS "<Your emoncms host fqdn>";            // eg  "emoncms.org" Required for logging. Note:just the host not the protocol
 #define MYAPIKEY "<Your emoncms API write key>";    // Required Get it from your MyAccount details in your emoncms instance
 
 #define TIMESERVER "0.au.pool.ntp.org";              // Pick a time server
@@ -173,9 +173,9 @@ https://github.com/wemos
 const char* nodeName = NODENAME;
 const char* ssid = LOCALSSID;
 const char* password = WIFIPASSWORD;
-const char* passwords[] = PASSARRAY;
-const char* accessPoints[] = APARRAY;
-const char* host = HOST;
+// const char* passwords[] = PASSARRAY;
+// const char* accessPoints[] = APARRAY;
+const char* host = EMONCMS;
 const char* APIKEY = MYAPIKEY;
 #ifdef SENSORCOUNT
  const int numberOfSensors = SENSORCOUNT;
