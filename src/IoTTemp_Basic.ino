@@ -243,7 +243,7 @@ boolean showIP = true;    // Only show the WiFi/IP details on first run through 
 #endif
  
 //Working Variables etc.
-#define CELSIUS             // Comment out if you prefer Fahrenheit
+#define CELSIUS;            // Comment out if you prefer Fahrenheit
 float TempC;
 float TempF;
 float Humidity;
