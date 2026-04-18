@@ -138,7 +138,7 @@ https://github.com/wemos
                                 // 1.44 EEPROM Access for Max and Min stuff beyond reboots
                                 
 
-#warning Setup your data.h.  Refer to the provided template at top of this file.
+#warning Setup your include/data.h.  Refer to the provided template at top of this file.
 
 #include <EEPROM.h>          // Going to save some Max/Min stuff
 #define EEPROM_SIZE 32       // 4 bytes each for TempMax, TMaxEpoch, TempMin, TMinEpoch, HumidityMax, HMaxEpoch, HumidityMin, HMinEpoch
@@ -148,7 +148,7 @@ https://github.com/wemos
 #ifdef WIFI
   #include <ESP8266WiFi.h>
   // #include <ESP8266WiFiMulti.h>   // Include the Wi-Fi-Multi library
-  #include <WiFiClient.h>
+  // #include <WiFiClient.h>         // Only needed in the WiFi-Multi 
   #include <ESP8266mDNS.h>
   #include <ESP8266WebServer.h>   // Include the WebServer library
   #include <ArduinoOTA.h>
@@ -175,8 +175,10 @@ const char* ssid = LOCALSSID;
 const char* password = WIFIPASSWORD;
 // const char* passwords[] = PASSARRAY;
 // const char* accessPoints[] = APARRAY;
+#ifdef EMONCMS
 const char* host = EMONCMS;
 const char* APIKEY = MYAPIKEY;
+#endif
 #ifdef SENSORCOUNT
  const int numberOfSensors = SENSORCOUNT;
 #endif
@@ -243,7 +245,7 @@ boolean showIP = true;    // Only show the WiFi/IP details on first run through 
 #endif
  
 //Working Variables etc.
-#define CELSIUS;            // Comment out if you prefer Fahrenheit
+#define CELSIUS         // Comment out if you prefer Fahrenheit
 float TempC;
 float TempF;
 float Humidity;
@@ -699,6 +701,7 @@ void loop() {
        showIP = false;
     }
     #endif
+ #ifdef EMONCMS
     Serial.printf("[Connecting to %s ... \n", host );
       
     if (client.connect(host, 80))     {
@@ -758,6 +761,7 @@ void loop() {
     tft.println( host );
     tft.print(" Connection failed");
    }
+   #endif  // def EMONCMS
  #endif  // def WIFI
   }  
      lastRun = millis();
@@ -812,7 +816,7 @@ void connectWiFi() {
  WiFi.config( staticIP, gateway, subnet, dns1 );
 #endif
   String newHostName = NODENAME;
-  WiFi.setHostname( newHostName.c_str() );     // This will show up in your DHCP server
+  // WiFi.setHostname( newHostName.c_str() );     // This will show up in your DHCP server
   WiFi.begin(ssid, password);
 
   String strDebug = ssid ;
@@ -838,7 +842,7 @@ void connectWiFi() {
 
 #ifdef WIFI
 void handleRoot() {
-  String url = "<a href=http://" + String(host) + ">"+host+"</a></b><br>";
+  String url = "<a href=http://" + String(NODENAME) + ">"+NODENAME+"</a></b><br>";
   String response = "<h2>Welcome to IoT Temp on node " + String(nodeName) + "</h2>";
          response += "<p></p><table style=\"width:600\">";
          response += "<tr><td>Temperature </td><td><b>" + String(TempC) + "C</b></td></tr>";
@@ -877,7 +881,9 @@ void handleRoot() {
          String upTime = String(upDays) + "d " + String( upHours ) + "h " + String(upMins) + "m " +String(upSecs) + "s";
          response += "<tr><td>Uptime  </td><td><b>" + upTime + "</b></td></tr>";
 
+ #ifdef EMONCMS
          response += "<tr><td>Currently logging to </td><td>" + url + "</td></tr>";
+ #endif 
          response += "<tr><td>Local IP is: </td><td><b>" + WiFi.localIP().toString() + "</b></td></tr>";
          response += "<tr><td>Free Heap Space </td><td><b>" + String(ESP.getFreeHeap()) + " bytes</b></td></tr>";
          response += "<tr><td>Software Version </td><td><b>" + String(VERSION) + "</b></td></tr>";
